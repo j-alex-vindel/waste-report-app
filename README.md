@@ -18,11 +18,11 @@ A Streamlit app that analyzes weekly food sales reports (PDF) and highlights the
 
 ## 📁 File Structure
 
-waste-report-app/
+```waste-report-app/
 ├── app.py # Main landing page
 ├── pages/
 │ ├── 1_Waste_Report.py # Full waste analysis logic
 │ ├── 2_Upload_Logs.py # Placeholder page
 │ └── 3_Insights_Comparison.py # Placeholder page
 ├── requirements.txt
-└── README.md
+└── README.md```
