@@ -1,0 +1,7 @@
+myenv/ 
+__pycache__/ 
+*.py[cod] 
+.DS_Store 
+*.pyo 
+*.pyd 
+.env 
