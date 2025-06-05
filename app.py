@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Weekly Analysis Hub", layout="wide")
 
-st.title("📊 Welcome to the Weekly Reporting Tool")
+st.title("📊 Welcome to the Weekly Waste Reporting Tool")
 st.markdown(
     """
     Use the sidebar to navigate between the available analysis tools.
@@ -12,4 +12,5 @@ st.markdown(
     - **More to come**: (coming soon)
     """
 )
+st.caption(""":male-technologist: **Developed by** [Alexander Vindel](https://github.com/j-alex-vindel)""")
 
