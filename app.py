@@ -7,8 +7,11 @@ st.markdown(
     """
     Use the sidebar to navigate between the available analysis tools.
     
-    - **Waste Report**: Analyze weekly food waste from your PDF reports.
-    - **Single Origin**: (coming soon).
+    - _**Use this tool to help you visualize your weekly food waste reports and SO sales.**_
+
+
+    - **Waste Report**: Analyze weekly food waste from your PDF reports. Download a PDF with the Top 10 waste items charts.
+    - **Single Origin**: (coming soon). Visualize single origin sales data per staff member.
     - **More to come**: (coming soon)
     """
 )
