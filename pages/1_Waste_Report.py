@@ -32,6 +32,7 @@ if uploaded_file:
         clean_rows = []
         first_date = last_date = store_name = None
         parsed_dates = []
+        raw_date = None
 
         with pdfplumber.open(uploaded_file) as pdf:
             for page_num, page in enumerate(pdf.pages):
@@ -51,7 +52,11 @@ if uploaded_file:
                             except:
                                 continue
                         parsed_dates.append(parsed)
-
+                    for table in page.extract_tables():
+                        for i, row in enumerate(table):
+                            if i == 0 and "Last 4 Weeks" in row:
+                                raw_date = [date for date in row if date != None]
+                
                 for table in page.extract_tables():
                     for row in table:
                         if not row or not row[0]:
@@ -65,6 +70,8 @@ if uploaded_file:
         if not clean_rows:
             st.error("No valid data found in the uploaded PDF.")
         else:
+            raw_date.pop()
+            clean_date = [raw_date[0],raw_date[-1]]
             df = pd.DataFrame(clean_rows)
             df.columns = [f"col{i+1}" for i in range(len(df.columns))]
 
@@ -96,7 +103,7 @@ if uploaded_file:
             subheader = f"Top 10 Most Wasted Products – {store_name}" if store_name else "Top 10 Most Wasted Products"
             st.subheader(subheader)
             if date_range_str:
-                st.caption(f"Data from {date_range_str}")
+                st.caption(f"Data from {clean_date[1]} to {clean_date[0]}")
             
             st.dataframe(top10_non_pastries[["Item","Sold", "Waste", "Waste_pct"]], use_container_width=True)
 
@@ -108,7 +115,7 @@ if uploaded_file:
                 bars1 = ax1.barh(top10_non_pastries["Item"], top10_non_pastries["Waste_pct"], color="gray", edgecolor="black")
                 for bar in bars1:
                     ax1.text(bar.get_width() + 0.5, bar.get_y() + bar.get_height()/2, f"{bar.get_width():.1f}%", va='center')
-                ax1.set_title(f"Top 10 Most Wasted Products\n{store_name or ''}\n{first_date or ''} – {last_date or ''}", fontsize=14)
+                ax1.set_title(f"Top 10 Most Wasted Products\n{store_name or ''}\n{clean_date[1] or ''} – {clean_date[0] or ''}", fontsize=14)
                 ax1.set_xlabel("Waste %")
                 ax1.set_ylabel("Product")
                 ax1.invert_yaxis()
@@ -127,7 +134,7 @@ if uploaded_file:
                     bars2 = ax2.barh(top10_pastries["Item"], top10_pastries["Waste_pct"], color="lightgray", edgecolor="black")
                     for bar in bars2:
                         ax2.text(bar.get_width() + 0.5, bar.get_y() + bar.get_height()/2, f"{bar.get_width():.1f}%", va='center')
-                    ax2.set_title(f"Top 10 Most Wasted Pastries\n{store_name or ''}\n{first_date or ''} – {last_date or ''}", fontsize=14)
+                    ax2.set_title(f"Top 10 Most Wasted Pastries\n{store_name or ''}\n{clean_date[1] or ''} – {clean_date[0] or ''}", fontsize=14)
                     ax2.set_xlabel("Waste %")
                     ax2.set_ylabel("Pastry Item")
                     ax2.invert_yaxis()
