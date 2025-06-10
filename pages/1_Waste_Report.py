@@ -62,6 +62,7 @@ add_bg_from_local("assests/report.jpg")
 
 # --- Streamlit app ---
 st.title("📉 Weekly Waste Report Analyzer Tool")
+st.info("This feature will allow you to plot food waste percentages.")
 uploaded_file = st.file_uploader("Upload your PDF report - 4 Weekly Food Sales - (Colin)", type="pdf")
 
 if uploaded_file:
