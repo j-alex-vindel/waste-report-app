@@ -70,7 +70,7 @@ if uploaded_file:
                     fig, ax = plt.subplots(figsize=(12, 6))
                     names = df_sorted["Name"]
                     x = np.arange(len(names))
-                    
+                    wraped_names = [name.replace(" ", "\n") if len(name) > 12 else name for name in names]
                     gap = 0.6
                     # Plotting
                     names = df_sorted["Name"]
@@ -91,7 +91,8 @@ if uploaded_file:
                     ax.set_ylabel("Mix %")
                     ax.set_title(f"Mix % Comparison by Team Member - {store_name} - {date}")
                     ax.set_xticks(x)
-                    ax.set_xticklabels(names, rotation=45, ha="right")
+                    ax.set_xticklabels(wraped_names, fontsize=9, fontfamily='monospace')
+                    plt.subplots_adjust(bottom=0.25)
                     ax.legend()
                     ax.grid(True, linestyle="--", axis="y", alpha=0.5)
 

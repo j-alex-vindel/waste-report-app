@@ -10,8 +10,8 @@ st.markdown(
     - _**Use this tool to help you visualize your weekly food waste reports and SO sales.**_
 
 
-    - **Waste Report**: Analyze weekly food waste from your PDF reports. Download a PDF with the Top 10 waste items charts.
-    - **Single Origin**: (coming soon). Visualize single origin sales data per staff member.
+    - :chart: **Waste Report**: Analyze weekly food waste from your PDF reports. Download a PDF with the Top 10 waste items charts.
+    - :coffee: **Single Origin**: Analyze weekly Single Origin  sales from your PDF report. Download a PDF with the staff performance chart.
     - **More to come**: (coming soon)
     """
 )
