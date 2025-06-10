@@ -6,6 +6,7 @@ import re
 from io import BytesIO
 from matplotlib.backends.backend_pdf import PdfPages
 from datetime import datetime
+import base64
 
 # --- Helper functions ---
 def is_all_caps(text):
@@ -22,6 +23,42 @@ pastry_keywords = [
     "Almond Croissant", "Apricot Croissant", "Vegan Raspberry Croissant",
     "Pain Au Chocolat", "Pain Au Raisin", "Cinnamon Swirl", "Butter Croissant"
 ]
+
+def add_bg_from_local(image_file):
+    with open(image_file, "rb") as f:
+        encoded = base64.b64encode(f.read()).decode()
+
+    css = f"""
+    <style>
+    .stApp {{
+        background: url("data:image/jpg;base64,{encoded}") no-repeat center center fixed;
+        background-size: cover;
+        position: relative;
+    }}
+
+    .stApp::before {{
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.75); /* White overlay with 75% opacity */
+        z-index: 0;
+    }}
+
+    .stApp > * {{
+        position: relative;
+        z-index: 1;
+    }}
+    </style>
+    """
+    st.markdown(css, unsafe_allow_html=True)
+
+# 🔁 Add background image
+add_bg_from_local("assests/report.jpg")
+
+
 
 # --- Streamlit app ---
 st.title("📉 Weekly Waste Report Analyzer Tool")
