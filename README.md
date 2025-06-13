@@ -10,7 +10,8 @@ A Streamlit app that analyzes weekly food sales reports (PDF) and highlights the
 - 🧠 Extracts and processes food waste data
 - 📊 Visualizes top 10 most wasted items
 - 🏷 Labels bars with waste %
-- 📥 Download PNG chart
+- 📥 Download PDF with charts
+- 📧 Sends email with pdf attached
 - 🔍 Store name auto-detected from report
 - 🗂️ Multipage app structure (more tools coming soon)
 
