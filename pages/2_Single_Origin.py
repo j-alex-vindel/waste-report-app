@@ -7,6 +7,8 @@ from io import BytesIO
 from matplotlib.backends.backend_pdf import PdfPages
 import numpy as np
 import base64
+from email_utils import send_email_with_reports, validate_email
+import os
 
 def add_bg_from_local(image_file):
     with open(image_file, "rb") as f:
@@ -42,7 +44,7 @@ def add_bg_from_local(image_file):
 # 🔁 Add background image
 add_bg_from_local("assests/coffebean_so.jpg")
 
-
+tab1, tab2 = st.tabs(["⬇️ Download Report", "📧 Email Report"])
 
 st.title("📁 Single Origin")
 st.info("This feature will allow you to plot and track single origin sales.")
@@ -68,6 +70,8 @@ if uploaded_file:
                 text = first_page.extract_text()
                 date = text.split("\n")[0]
                 date = '-'.join(date.split()[-4:-1])
+                if not date:
+                    date = "Unknown Date"
 
                 for i,row in enumerate(table):
                     if not row or (len(row) < 2) or (row[0] is None and row[1] is None):
@@ -134,13 +138,42 @@ if uploaded_file:
                     st.pyplot(fig)
                     plt.close(fig)
 
-                st.download_button(
-                    label="Download PDF",
+                with tab1:
+                    st.download_button(
+                    label="📄 Download report as PDF",
                     data=pdf_buffer.getvalue(),
-                    file_name=f"{store_name}_SO_Report.pdf",
+                    file_name="waste_report.pdf",
                     mime="application/pdf"
                 )
-
+                with tab2:
+                    st.markdown("Enter your email below to receive the report directly in your inbox.")
+                    recipient_email = st.text_input("Recipient Email Address")
+                    st.caption("Please ensure you enter a valid email address. Your email will not be stored or used for any other purpose.")
+                    if st.button("Send Report"):
+                        if not recipient_email:
+                            st.warning("Please enter an email address.")
+                        elif not validate_email(recipient_email):
+                            st.error("❌ Please enter a valid email address.")
+                        else:
+                            try:
+                                report_filename = f"{store_name}_SingleOrigin.pdf"
+                                with open(report_filename, "wb") as f:
+                                    f.write(pdf_buffer.getvalue())
+                                success = send_email_with_reports(
+                                sender_email=st.secrets["email"]["address"],
+                                sender_password=st.secrets["email"]["password"],
+                                recipient_email=recipient_email,
+                                subject="📊 Your Report from the Waste & Sales Tool",
+                                body=f'''Hi there! Attached is your report for {store_name} ({date})\n.
+                                \nBest Regards,\nThe Waste & Sales Tool Bot\n\n\nPlease do not reply to this email, it is sent from an unmonitored address.''',
+                                pdf_paths=[report_filename]
+                            )
+                                if success:
+                                    st.success("📬 Report sent successfully!")
+                                    os.remove(report_filename)
+    
+                            except Exception as e:
+                                st.error(f"Failed to send email: {e}")
 
 
     except Exception as e:

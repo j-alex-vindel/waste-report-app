@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 import re
 from io import BytesIO
 from matplotlib.backends.backend_pdf import PdfPages
-from datetime import datetime
+import os
 import base64
-
+from email_utils import send_email_with_reports, validate_email
 # --- Helper functions ---
 def is_all_caps(text):
     return text.isupper()
@@ -58,7 +58,7 @@ def add_bg_from_local(image_file):
 # 🔁 Add background image
 add_bg_from_local("assests/report.jpg")
 
-
+tab1, tab2 = st.tabs(["⬇️ Download Report", "📧 Email Report"])
 
 # --- Streamlit app ---
 st.title("📉 Weekly Waste Report Analyzer Tool")
@@ -79,17 +79,6 @@ if uploaded_file:
                     store_match = re.search(r"Store Name:\s*(.*)", text)
                     if store_match:
                         store_name = store_match.group(1).strip()
-                      # Match flexible date formats like '5 May 2025' or '05/05/2025'
-                    date_matches = re.findall(r"\b(\d{1,2}[ /.-](?:\w+|\d{1,2})[ /.-]\d{4})\b", text)
-                    for raw_date in date_matches:
-                        try:
-                            parsed = datetime.strptime(raw_date, "%d %B %Y")
-                        except:
-                            try:
-                                parsed = datetime.strptime(raw_date, "%d/%m/%Y")
-                            except:
-                                continue
-                        parsed_dates.append(parsed)
                     for table in page.extract_tables():
                         for i, row in enumerate(table):
                             if i == 0 and "Last 4 Weeks" in row:
@@ -110,6 +99,8 @@ if uploaded_file:
         else:
             raw_date.pop()
             clean_date = [raw_date[0],raw_date[-1]]
+            if len(raw_date) < 2:
+                clean_date = ["Unknown", "Unknown"]
             df = pd.DataFrame(clean_rows)
             df.columns = [f"col{i+1}" for i in range(len(df.columns))]
 
@@ -123,14 +114,6 @@ if uploaded_file:
             df = df[["Item", "is_pastry", "Sold", "Waste"]].dropna(subset=["Sold", "Waste"])
             df["Waste_pct"] = (df["Waste"] / (df["Sold"] + df["Waste"]) * 100).round(2)
 
-            # Extract and format date range
-            if parsed_dates:
-                parsed_dates.sort()
-                first_date = parsed_dates[0].strftime("%d %b %Y")
-                last_date = parsed_dates[-1].strftime("%d %b %Y")
-                date_range_str = f"{first_date} – {last_date}"
-            else:
-                date_range_str = ""
 
             df_pastries = df[df["is_pastry"]].copy()
             df_non_pastries = df[~df["is_pastry"]].copy()
@@ -140,8 +123,8 @@ if uploaded_file:
 
             subheader = f"Top 10 Most Wasted Products – {store_name}" if store_name else "Top 10 Most Wasted Products"
             st.subheader(subheader)
-            if date_range_str:
-                st.caption(f"Data from {clean_date[1]} to {clean_date[0]}")
+            
+            st.caption(f"Data from {clean_date[1]} to {clean_date[0]}")
             
             st.dataframe(top10_non_pastries[["Item","Sold", "Waste", "Waste_pct"]], use_container_width=True)
 
@@ -181,13 +164,44 @@ if uploaded_file:
                     pdf.savefig(fig2)
                     st.pyplot(fig2)
                     plt.close(fig2)
+            
+            with tab1:
+                st.download_button(
+                    label="📄 Download report as PDF",
+                    data=pdf_buffer.getvalue(),
+                    file_name="waste_report.pdf",
+                    mime="application/pdf"
+                )
+            with tab2:
+                st.markdown("Enter your email below to receive the report directly in your inbox.")
+                recipient_email = st.text_input("Recipient Email Address")
+                st.caption("Please ensure you enter a valid email address. Your email will not be stored or used for any other purpose.")
+                if st.button("Send Report"):
+                    if not recipient_email:
+                        st.warning("Please enter an email address.")
+                    elif not validate_email(recipient_email):
+                        st.error("❌ Please enter a valid email address.")
+                    else:
+                        try:
+                            report_filename = f"{store_name}_Waste_Report.pdf"
+                            with open(report_filename, "wb") as f:
+                                f.write(pdf_buffer.getvalue())
+                            success = send_email_with_reports(
+                            sender_email=st.secrets["email"]["address"],
+                            sender_password=st.secrets["email"]["password"],
+                            recipient_email=recipient_email,
+                            subject="📊 Your Report from the Waste & Sales Tool",
+                            body=f'''Hi there! Attached is your report for {store_name} ({clean_date[1]} - {clean_date[0]})\n.
+                            \nBest Regards,\nThe Waste & Sales Tool Bot\n\n\nPlease do not reply to this email, it is sent from an unmonitored address.''',
+                            pdf_paths=[report_filename]
+                        )
+                            if success:
+                                st.success("📬 Report sent successfully!")
+                                os.remove(report_filename)
+   
+                        except Exception as e:
+                            st.error(f"Failed to send email: {e}")
 
-            st.download_button(
-                label="📄 Download charts as PDF",
-                data=pdf_buffer.getvalue(),
-                file_name="waste_charts_report.pdf",
-                mime="application/pdf"
-            )
 
     except Exception as e:
         st.error(f"An error occurred: {e}")
