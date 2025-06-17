@@ -7,7 +7,7 @@ from io import BytesIO
 from matplotlib.backends.backend_pdf import PdfPages
 import os
 import base64
-from email_utils import send_email_with_reports, validate_email
+from email_utils import send_email_with_reports, validate_email, get_email_config
 # --- Helper functions ---
 def is_all_caps(text):
     return text.isupper()
@@ -186,9 +186,12 @@ if uploaded_file:
                             report_filename = f"{store_name}_Waste_Report.pdf"
                             with open(report_filename, "wb") as f:
                                 f.write(pdf_buffer.getvalue())
+                            config = get_email_config()    
                             success = send_email_with_reports(
-                            sender_email=st.secrets["email"]["address"],
-                            sender_password=st.secrets["email"]["password"],
+                            sender_email=config["sender_email"],
+                            sender_password=config["sender_password"],
+                            smtp_server=config["smtp_server"],
+                            smtp_port=config["smtp_port"],
                             recipient_email=recipient_email,
                             subject="📊 Your Report from the Waste & Sales Tool",
                             body=f'''Hi there! Attached is your report for {store_name} ({clean_date[1]} - {clean_date[0]})\n.
