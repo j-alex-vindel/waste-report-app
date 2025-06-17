@@ -4,18 +4,26 @@ A Streamlit app that analyzes weekly food sales reports (PDF) and highlights the
 
 ---
 
-## 🚀 Features
+## 🚀 General Features
 
+- 🔍 Store name auto-detected from report
+- 🗂️ Multipage app structure (more tools coming soon)
+
+### Page 1:
 - 📄 Upload weekly sales PDFs (e.g., *4 Weekly Food Sales by Store*)
 - 🧠 Extracts and processes food waste data
 - 📊 Visualizes top 10 most wasted items
 - 🏷 Labels bars with waste %
-- 📥 Download PNG chart
+- 📥 Download Charts (PDF)
+- 📧 Send an email with the report
+
+### Page 2:
+- 📄 Upload weekly single origin sales PDFs (e.g., *Single Origin Report*)
+- 📊 Visualizes staff single origin sales and computes the weekly difference
+- 🏷 Labels bars with names
+- 📥 Download Chart (PDF)
+- 📧 Send an email with the report
 - 🔍 Store name auto-detected from report
 - 🗂️ Multipage app structure (more tools coming soon)
-
 ---
 
-## 📁 File Structure
-
-```text waste-report-app/ ├── app.py # Main landing page ├── pages/ │ ├── 1_Waste_Report.py # Full waste analysis logic │ ├── 2_Upload_Logs.py # Placeholder page │ └── 3_Insights_Comparison.py# Placeholder page ├── requirements.txt └── README.md ``` 
