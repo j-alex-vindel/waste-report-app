@@ -1,52 +1,62 @@
 import smtplib
 import ssl
-from email.message import EmailMessage
 import os
 import re
-
-def send_email_with_reports(sender_email=None, sender_password=None, recipient_email=None, subject=None, body=None, pdf_paths=None):
-    """
-    Send an email with one or more PDF attachments.
-    
-    Parameters:
-        sender_email (str): The app email address (e.g., your Gmail).
-        sender_password (str): App-specific password or your email password.
-        recipient_email (str): The recipient’s email address.
-        subject (str): Subject line for the email.
-        body (str): The plain-text body message.
-        pdf_paths (list): List of full paths to PDF files to attach.
-    """
-
-    # Prepare email message
-    msg = EmailMessage()
-    msg["From"] = sender_email
-    msg["To"] = recipient_email
-    msg["Subject"] = subject
-    msg.set_content(body)
-
-    # Attach PDFs
-    attached_any = False
-    for path in pdf_paths:
-        if path and os.path.exists(path):
-            with open(path, "rb") as f:
-                file_data = f.read()
-                filename = os.path.basename(path)
-                msg.add_attachment(file_data, maintype="application", subtype="pdf", filename=filename)
-                attached_any = True
-
-    if not attached_any:
-        raise FileNotFoundError("No valid report PDFs were provided.")
-
-    # Send the email
-    context = ssl.create_default_context()
-    try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-            server.login(sender_email, sender_password)
-            server.send_message(msg)
-        return True
-    except smtplib.SMTPException as e:
-        raise RuntimeError(f"Failed to send email: {e}")
+from email.message import EmailMessage
+import streamlit as st
 
 def validate_email(email):
-    pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
+    """Simple email validation using regex."""
+    pattern = r"^[\w\.-]+@[\w\.-]+\.\w{2,}$"
     return re.match(pattern, email) is not None
+
+def get_email_config():
+    """
+    Load email credentials from Streamlit secrets or environment variables.
+    Supports local development and cloud deployment.
+    """
+    try:
+        return {
+            "sender_email": st.secrets["email"]["address"],
+            "sender_password": st.secrets["email"]["password"],
+            "smtp_server": st.secrets["email"].get("smtp_server", "smtp.gmail.com"),
+            "smtp_port": int(st.secrets["email"].get("smtp_port", 587))
+        }
+    except (KeyError, AttributeError):
+        return {
+            "sender_email": os.getenv("EMAIL_ADDRESS"),
+            "sender_password": os.getenv("EMAIL_PASSWORD"),
+            "smtp_server": os.getenv("SMTP_SERVER", "smtp.gmail.com"),
+            "smtp_port": int(os.getenv("SMTP_PORT", 587))
+        }
+
+def send_email_with_reports(sender_email, sender_password, recipient_email, subject, body, pdf_paths, smtp_server="smtp.gmail.com", smtp_port=587):
+    """
+    Sends an email with the given PDF attachments to the recipient.
+    """
+    try:
+        msg = EmailMessage()
+        msg["From"] = sender_email
+        msg["To"] = recipient_email
+        msg["Subject"] = subject
+        msg.set_content(body)
+
+        for pdf_path in pdf_paths:
+            if not os.path.exists(pdf_path):
+                continue
+            with open(pdf_path, "rb") as f:
+                file_data = f.read()
+                file_name = os.path.basename(pdf_path)
+                msg.add_attachment(file_data, maintype="application", subtype="pdf", filename=file_name)
+
+        context = ssl.create_default_context()
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls(context=context)
+            server.login(sender_email, sender_password)
+            server.send_message(msg)
+
+        return True
+
+    except Exception as e:
+        st.error(f"Email failed: {e}")
+        return False
