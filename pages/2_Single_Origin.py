@@ -142,7 +142,7 @@ if uploaded_file:
                     st.download_button(
                     label="📄 Download report as PDF",
                     data=pdf_buffer.getvalue(),
-                    file_name="waste_report.pdf",
+                    file_name="SO_report.pdf",
                     mime="application/pdf"
                 )
                 with tab2:
